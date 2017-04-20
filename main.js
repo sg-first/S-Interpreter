@@ -62,3 +62,65 @@ function parser(src)
     var arrayExp = "[" + tokens.replace(/\[,/g,'[').replace(/,\]/g,']') + "]";
     return eval(arrayExp);
 }
+
+
+function e(list)
+{
+    var op;
+    var val=[];
+    
+    for(var i=0;i<list.length;i++)
+    {
+        if(i==0)
+        {
+            op=list[0];
+            continue;
+        }
+
+        //子表达式递归解析
+        if(Array.isArray(list[i]))
+        {
+            val.push(e(list[i]));
+            continue;
+        }
+
+        //变量直接转到值
+        if(varlist[list[i]]!=undefined)
+        {
+            val.push(varlist[list[i]]);
+            continue;
+        }
+        
+        //其它视为字面量
+        val.push(list[i]);
+    }
+
+    //跑函数表
+    if(op=="define")
+        return define(val[0],val[1]);
+
+    //全部落空
+    if(op=="+"||op=="-"||op=="*"||op=="/")
+        return eval(val[0]+op+val[1]);
+    else
+    {
+        //其它的就视为js函数吧
+        var str=op+"(";
+        for(var i=0;i<val.length;i++)
+        {
+            str+=val[i];
+            if(i!=val.length-1)
+                str+=",";
+        }
+        str+=")";
+        return eval(str);
+    }
+}
+
+
+function run(str) 
+{
+    var list=parser(str);
+    for(var i in list)
+        output(e(i));
+}
